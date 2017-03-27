@@ -203,10 +203,8 @@ function get_nb(t_nu_dec::Array{Float64},zz; minimum_nu_date = 55694.0, maximum_
 end
 
 
-function assign_nb!(t_sn::Array{sn}, nnb::Array{Float64}, zz::Array{Float64})
-    cos_dec_2_zen = [cos(0.5*pi + t_sn[i].dec) for i in 1:len_sne];
-    ks = map(x->searchsortedlast(zz,x),cos_dec_2_zen);
-    map((x,y)->add_nb_and_zenith_bin_idx!(x,nnb[y],y),t_sn,ks);
+function assign_nb!(t_sn::Array{sn,1}, nnb::Array{Float64,1}, ks::Array{Int,1})
+    map((x,y,z)->add_nb_and_zenith_bin_idx!(x,y,z),t_sn,nnb,ks);
     nothing;
 end
 
@@ -274,6 +272,4 @@ wrapper_log_sig_energy_pdf, wrapper_log_atm_energy_pdf = get_energy_pdf!(zenith,
 @assert(len_zenith == length(zenith));
 @assert(len_proxy == length(proxy));
 
-nb = get_nb(nu_data[bkg_nus,5], zenith);
-
-assign_nb!(my_sn, nb, zenith);
+assign_nb!(my_sn,readdlm("w_energy_dep/data/nb_data")[:,1],convert(Array{Int,1},readdlm("w_energy_dep/data/ks")[:,1]))
