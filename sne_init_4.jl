@@ -167,8 +167,7 @@ function S_time(t_sn::sn, t_nu::nu)
     return pdf(Poisson(13.0),t_sn.max_date-t_nu.mjd-0.5)
 end
 
-function calc_T(nns::Array{Float64,1},t_sn::Array{sn,1})
-      @assert([nns[j].*t_sn[j] for j in 1:len_sne] .> -1.0)
+function calc_T(nns::Array{Float64,1},t_sn::Array{sn,1}) 
      inner_sum = [sum(log(nns[i].*t_sn[i].coefs+ 1.0)) for i in 1:len_sne]
 
     return sum( - nns .+ inner_sum);
@@ -176,7 +175,7 @@ end
 
 function calc_coefs!(t_sn::sn)
 
-    if length(t_sn.associated_nus) != 0
+    if length(t_sn.associated_nus) > 0
 	    temp_s = map(x-> S_dir(t_sn,x),t_sn.associated_nus);
     	temp_s .*= map(x-> S_time(t_sn,x),t_sn.associated_nus);
     	temp_s .*= map(x-> 10^wrapper_log_sig_energy_pdf[t_sn.zenith_bin](x),[t_sn.associated_nus[j].log_eng for j in 1:length(t_sn.associated_nus)]);
@@ -186,10 +185,7 @@ function calc_coefs!(t_sn::sn)
     	temp_b .*= map(x-> 10^wrapper_log_atm_energy_pdf[t_sn.zenith_bin](x),[t_sn.associated_nus[j].log_eng for j in 1:length(t_sn.associated_nus)]);
 
     	add_coefs!(t_sn,temp_s./temp_b./t_sn.nb);
-    else
-    	add_coefs!(t_sn,[0.0]);
     end
-
 end
 
 
