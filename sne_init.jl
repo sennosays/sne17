@@ -233,7 +233,11 @@ function get_T()
 
     map(calc_coefs!,my_sn);
 
-    opt_T = optimize(ns-> calc_T(ns,my_sn),(x,s) -> grad_T!(x,s,my_sn),(xx,ss) -> hess_T!(xx,ss,my_sn),zeros(Float64,len_sne),Newton())
+    lower = [maximum(-1./my_sn[i].coefs) for i in 1:len_sne];
+    upper = Inf.*ones(Float64,len_sne);
+
+    opt_T = optimize(OnceDifferentiable(ns-> calc_T(ns,my_sn)),zeros(Float64,len_sne),lower,upper,Fminbox(),optimizer = GradientDescent); 
+    #opt_T = optimize(ns-> calc_T(ns,my_sn),(x,s) -> grad_T!(x,s,my_sn),(xx,ss) -> hess_T!(xx,ss,my_sn),zeros(Float64,len_sne),Newton())
 
     return opt_T.minimizer, opt_T.minimum
 end
@@ -255,8 +259,8 @@ nu_data = readdlm("w_energy_dep/data/modified_upgoing_nu");
 sne_data = readdlm("w_energy_dep/data/sne_data");
 
 #len_sne = 27;
-len_sne = 2; 
-#len_nu = 69227;
+len_sne = 2;
+len_nu = 69227;
 
 
 
@@ -281,4 +285,4 @@ wrapper_log_sig_energy_pdf, wrapper_log_atm_energy_pdf = get_energy_pdf!(zenith,
 @assert(len_zenith == length(zenith));
 @assert(len_proxy == length(proxy));
 
-assign_nb!(my_sn,readdlm("w_energy_dep/data/nb_data")[:,1],convert(Array{Int,1},readdlm("w_energy_dep/data/ks")[:,1]))
+assign_nb!(my_sn,readdlm("w_energy_dep/data/nb_data")[1:len_sne,1],convert(Array{Int,1},readdlm("w_energy_dep/data/ks")[1:len_sne,1]))
