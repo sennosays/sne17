@@ -254,8 +254,12 @@ end
 nu_data = readdlm("w_energy_dep/data/modified_upgoing_nu");
 sne_data = readdlm("w_energy_dep/data/sne_data");
 
-len_sne = 27;
-len_nu = 69227;
+#len_sne = 27;
+len_sne = 2; 
+#len_nu = 69227;
+
+
+
 
 my_sn = Array(sn,len_sne);
 my_nu = Array(nu,len_nu);
