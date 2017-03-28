@@ -180,7 +180,7 @@ end
 function hess_T!(x::Vector, storage::Matrix, t_sn::Array{sn,1})
     fill!(storage,0.0);
     for i in 1:length(x)
-        storage[i,i] = sum((t_sn[i].coefs./(t_sn[i].coefs.*x[i])).^2)
+        storage[i,i] = sum((t_sn[i].coefs./(t_sn[i].coefs.*x[i]+1.0)).^2)
     end
 end
 
