@@ -170,7 +170,7 @@ end
 function calc_T(nns::Array{Float64,1},t_sn::Array{sn,1})
      inner_sum = [sum(log(nns[i].*t_sn[i].coefs+ 1.0)) for i in 1:len_sne]
 
-    return -sum( - nns .+ inner_sum);
+    return sum( nns .- inner_sum);
 end
 
 function grad_T!(x::Vector, storage::Vector, t_sn::Array{sn,1})
