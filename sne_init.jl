@@ -174,7 +174,7 @@ function calc_T(nns::Array{Float64,1},t_sn::Array{sn,1})
 end
 
 function grad_T!(x::Vector, storage::Vector, t_sn::Array{sn,1})
-    storage[:] = -[1.0 + sum(t_sn[i].coefs./(t_sn[i].coefs.*x[i]+1.0)) for i in 1:length(x)];
+    storage[:] = -[sum(t_sn[i].coefs./(t_sn[i].coefs.*x[i]+1.0)) for i in 1:length(x) - 1.0];
 end
 
 function hess_T!(x::Vector, storage::Matrix, t_sn::Array{sn,1})
@@ -236,7 +236,7 @@ function get_T()
     lower = [maximum(-1./my_sn[i].coefs) for i in 1:len_sne];
     upper = Inf.*ones(Float64,len_sne);
 
-    opt_T = optimize(OnceDifferentiable(ns-> calc_T(ns,my_sn)),zeros(Float64,len_sne),lower,upper,Fminbox(),optimizer = GradientDescent); 
+    opt_T = optimize(OnceDifferentiable(ns-> calc_T(ns,my_sn)),zeros(Float64,len_sne),lower,upper,Fminbox(),optimizer = GradientDescent);
     #opt_T = optimize(ns-> calc_T(ns,my_sn),(x,s) -> grad_T!(x,s,my_sn),(xx,ss) -> hess_T!(xx,ss,my_sn),zeros(Float64,len_sne),Newton())
 
     return opt_T.minimizer, opt_T.minimum
