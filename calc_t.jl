@@ -4,19 +4,19 @@ using Distributions
 using KernelDensity
 using Optim
 using StatsBase
-@everywhere include("sne_init_4.jl");
-n_exp = 2;
+@everywhere include("sne_init.jl");
+@everywhere get_T();
+n_exp =10
 
-
-@everywhere bootstrap_T(1)
-
-tic();
-my_ts_pmap = pmap(bootstrap_T,n_exp.*ones(Int,nworkers()));
-toc();
-my_ts = my_ts_pmap[1];
-
-for i in 2:nworkers()
-        my_ts = vcat(my_ts,my_ts_pmap[i]);
+my_ts = SharedArray(Float64,n_exp,len_sne+1);
+tic()
+@sync @parallel for n in 1:n_exp
+       # println("hello")
+        t_opt_T = get_T();
+        my_ts[n,1:end-1] = t_opt_T[1];
+        my_ts[n,end] = t_opt_T[2];
+       # println("goodbye");
 end
-
-writecsv(string("../results/T_",n_exp*nworkers()),my_ts);
+toc();
+#rmprocs(workers())
+writedlm(string("../results/T_",n_exp,".dat"),my_ts);
