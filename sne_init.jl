@@ -216,7 +216,7 @@ function assign_nb!(t_sn::Array{sn,1}, nnb::Array{Float64,1}, ks::Array{Int,1})
 end
 
 function get_T()
-
+    srand(13)
     nu_sample = calc_sample_nus();
     my_nu[:] = [nu(nu_sample[j,:]...) for j in 1:len_nu];
 
