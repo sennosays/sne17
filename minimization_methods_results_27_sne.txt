@@ -1,0 +1,27 @@
+GradientDescent w/ prep
+  0.218200 seconds (219.46 k allocations: 38.503 MB, 6.36% gc time)
+-229.81614873029275
+
+GradientDescent no prep
+  0.035684 seconds (56.55 k allocations: 9.657 MB, 21.45% gc time)
+-229.8161487302928
+
+ConjugateGradient w/ prep
+  0.197442 seconds (189.28 k allocations: 31.851 MB, 3.60% gc time)
+-229.81614873029278
+
+ConjugateGradient no prep
+  0.033830 seconds (41.48 k allocations: 6.501 MB, 19.65% gc time)
+-229.81614873029275
+
+LBFGS w/ prep
+  0.255567 seconds (353.85 k allocations: 65.937 MB, 7.20% gc time)
+-229.816148704383
+
+LBFGS no prep
+  0.036453 seconds (67.00 k allocations: 11.687 MB, 16.46% gc time)
+-229.81614873029278
+
+NelderMead
+  0.819903 seconds (2.99 M allocations: 633.867 MB, 18.86% gc time)
+-229.81614870267077
