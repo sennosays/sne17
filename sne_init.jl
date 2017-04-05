@@ -82,11 +82,11 @@ end
 
 function get_energy_pdf!(t_zenith::Array{Float64,1}, t_proxy::Array{Float64,1})
 
-    AA = readcsv("../data/sig_num_nus_pdf");
-    BB = readcsv("../data/atm_num_nus_pdf");
+    #AA = readcsv("../data/sig_num_nus_pdf");
+    #BB = readcsv("../data/atm_num_nus_pdf");
 
-    #AA = readcsv("w_energy_dep/data/sig_num_nus_pdf");
-    #BB = readcsv("w_energy_dep/data/atm_num_nus_pdf");
+    AA = readcsv("w_energy_dep/data/sig_num_nus_pdf");
+    BB = readcsv("w_energy_dep/data/atm_num_nus_pdf");
 
 
 
@@ -216,7 +216,7 @@ function assign_nb!(t_sn::Array{sn,1}, nnb::Array{Float64,1}, ks::Array{Int,1})
 end
 
 function get_T()
-    srand(13)
+
     nu_sample = calc_sample_nus();
     my_nu[:] = [nu(nu_sample[j,:]...) for j in 1:len_nu];
 
@@ -253,11 +253,11 @@ function bootstrap_T(NN::Int)
         return my_ts;
 end
 
-nu_data = readdlm("../data/modified_upgoing_nu");
-sne_data = readdlm("../data/sne_data");
+#nu_data = readdlm("../data/modified_upgoing_nu");
+#sne_data = readdlm("../data/sne_data");
 
-#nu_data = readdlm("w_energy_dep/data/modified_upgoing_nu");
-#sne_data = readdlm("w_energy_dep/data/sne_data");
+nu_data = readdlm("w_energy_dep/data/modified_upgoing_nu");
+sne_data = readdlm("w_energy_dep/data/sne_data");
 
 len_sne = 27;
 len_nu = 69227;
@@ -276,8 +276,8 @@ len_proxy = 51;
 zenith = Array(Float64,len_zenith);
 proxy = Array(Float64,len_proxy);
 
-bkg_nus = convert(Array{Int,1},readcsv("../data/bkg_nus_indx")[:]);
-#bkg_nus = convert(Array{Int,1},readcsv("w_energy_dep/data/bkg_nus_indx")[:]);
+#bkg_nus = convert(Array{Int,1},readcsv("../data/bkg_nus_indx")[:]);
+bkg_nus = convert(Array{Int,1},readcsv("w_energy_dep/data/bkg_nus_indx")[:]);
 
 B_nu_dec = get_dec_pdf(nu_data[bkg_nus,5]);
 wrapper_log_sig_energy_pdf, wrapper_log_atm_energy_pdf = get_energy_pdf!(zenith,proxy);
@@ -285,5 +285,5 @@ wrapper_log_sig_energy_pdf, wrapper_log_atm_energy_pdf = get_energy_pdf!(zenith,
 @assert(len_zenith == length(zenith));
 @assert(len_proxy == length(proxy));
 
-assign_nb!(my_sn,readdlm("../data/nb_data")[1:len_sne,1],convert(Array{Int,1},readdlm("../data/ks")[1:len_sne,1]))
-#assign_nb!(my_sn,readdlm("w_energy_dep/data/nb_data")[1:len_sne,1],convert(Array{Int,1},readdlm("w_energy_dep/data/ks")[1:len_sne,1]))
+#assign_nb!(my_sn,readdlm("../data/nb_data")[1:len_sne,1],convert(Array{Int,1},readdlm("../data/ks")[1:len_sne,1]))
+assign_nb!(my_sn,readdlm("w_energy_dep/data/nb_data")[1:len_sne,1],convert(Array{Int,1},readdlm("w_energy_dep/data/ks")[1:len_sne,1]))
