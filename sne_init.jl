@@ -146,15 +146,14 @@ function get_dec_pdf(t_nu_dec::Array{Float64,1})
 
     nu_dec_kde = kde(t_nu_dec);
     nu_dec_interp = InterpKDE(nu_dec_kde);
-    ## added cosine term to change this from a probability element to a
-    ## probability density. Notes that since theta = pi/2-Dec, sin(theta) -> cos(dec)
-    return xx ->  pdf(nu_dec_interp,xx)/cos(xx);
+
+    return xx ->  pdf(nu_dec_interp,xx);
 end
 
 function S_dir(t_sn::sn,t_nu::nu)
     mu = sin(t_sn.dec)*sin(t_nu.dec) + cos(t_sn.dec)*cos(t_nu.dec)*cos(t_sn.ra-t_nu.ra);
     kappa = 1/t_nu.ang_err^2;
-    
+
     return kappa/(4*pi*sinh(kappa))*exp(kappa*mu);
     #return exp(-0.5*Delta_Psi^2/t_nu.ang_err^2)/(2*pi*t_nu.ang_err^2);
 end
