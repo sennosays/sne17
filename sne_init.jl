@@ -5,6 +5,8 @@ using Optim
 using Interpolations
 using StatsBase
 
+include("cosmology.jl");
+
 immutable nu
     mjd::Float64
     log_eng::Float64
@@ -52,12 +54,12 @@ function get_nu_sample()
     return nu_sample
 end
 
-function calc_sample_nus()
-    mjd = sample(nu_data[:,1],replace=true,len_nu);
-    eng = sample(nu_data[:,2],replace=true,len_nu);
-    ang_err = sample(nu_data[:,3],replace=true,len_nu);
-    ra = rand(Uniform(0,2pi),len_nu);
-    dec = sample(nu_data[:,5],replace=true,len_nu);
+function calc_sample_nus(N_nus=len_nu)
+    mjd = sample(nu_data[:,1],replace=true,N_nus);
+    eng = sample(nu_data[:,2],replace=true,N_nus);
+    ang_err = sample(nu_data[:,3],replace=true,N_nus);
+    ra = rand(Uniform(0,2pi),N_nus);
+    dec = sample(nu_data[:,5],replace=true,N_nus);
 
     return hcat(mjd,eng,ang_err,ra,dec)
 end
@@ -288,7 +290,8 @@ wrapper_log_sig_energy_pdf, wrapper_log_atm_energy_pdf = get_energy_pdf!(zenith,
 @assert(len_proxy == length(proxy));
 
 sig_eng_cdf_fn = Array(AbstractInterpolation,len_zenith);
-sig_eng_cdf = readdlm("../data/sig_eng_cdf");
+#sig_eng_cdf = readdlm("../data/sig_eng_cdf");
+sig_eng_cdf = readdlm("w_energy_dep/data/sig_eng_cdf");
 
 log_eng = sig_eng_cdf[:,1];
 
