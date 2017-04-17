@@ -146,7 +146,9 @@ function get_dec_pdf(t_nu_dec::Array{Float64,1})
 
     nu_dec_kde = kde(t_nu_dec);
     nu_dec_interp = InterpKDE(nu_dec_kde);
-    return xx ->  pdf(nu_dec_interp,xx);
+    ## added cosine term to change this from a probability element to a 
+    ## probability density. Notes that since theta = pi/2-Dec, sin(theta) -> cos(dec)
+    return xx ->  pdf(nu_dec_interp,xx)/cos(xx);
 end
 
 function S_dir(t_sn::sn,t_nu::nu)
@@ -284,6 +286,14 @@ wrapper_log_sig_energy_pdf, wrapper_log_atm_energy_pdf = get_energy_pdf!(zenith,
 
 @assert(len_zenith == length(zenith));
 @assert(len_proxy == length(proxy));
+
+sig_eng_cdf_fn = Array(AbstractInterpolation,len_zenith);
+sig_eng_cdf = readdlm("../data/sig_eng_cdf");
+
+log_eng = sig_eng_cdf[:,1];
+
+sig_eng_cdf_fn[:] = [interpolate((sort(sig_eng_cdf[:,i]),),log_eng, Gridded(Linear())) for i in 1:len_zenith] ;
+
 
 #assign_nb!(my_sn,readdlm("../data/nb_data")[1:len_sne,1],convert(Array{Int,1},readdlm("../data/ks")[1:len_sne,1]))
 assign_nb!(my_sn,readdlm("w_energy_dep/data/nb_data")[1:len_sne,1],convert(Array{Int,1},readdlm("w_energy_dep/data/ks")[1:len_sne,1]))
