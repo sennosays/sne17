@@ -225,7 +225,17 @@ function S_dir(t_sn::sn,t_nu::nu)
     mu = sin(t_sn.dec)*sin(t_nu.dec) + cos(t_sn.dec)*cos(t_nu.dec)*cos(t_sn.ra-t_nu.ra);
     kappa = 1/t_nu.ang_err^2;
 
-    return kappa/(4*pi*sinh(kappa))*exp(kappa*mu);
+    if kappa > 10.0
+        result = kappa/(2*pi)*exp(kappa*(mu-1.0))
+    elseif 0.0 < kappa <= 10.0
+        result = kappa/(4*pi*sinh(kappa))*exp(kappa*mu);
+    else
+        error("strange kappa");
+    end
+
+    @assert(!isnan(result))
+
+    return result;
     #return exp(-0.5*Delta_Psi^2/t_nu.ang_err^2)/(2*pi*t_nu.ang_err^2);
 end
 
