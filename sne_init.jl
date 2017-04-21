@@ -117,6 +117,22 @@ function calc_sig_sample_nus(t_sn::sn,t_N_nus::Int)
     end
 end
 
+function get_sample_sig_nu!(t_sn::Array{sn,1},t_nu_sample::Array{Float64,2})
+    t_len_sne = length(t_sn);
+    num_nus = Array(Int,t_len_sne);
+
+    num_nus[:] = map(find_rand_N_nus,t_sn);
+
+    nu_sample_idx = 1;
+    for i in 1:t_len_sne
+        if num_nus[i] > 0
+            t_nu_sample[nu_sample_idx:nu_sample_idx+num_nus[i]-1,:] = calc_sig_sample_nus(t_sn[i],num_nus[i]);
+            nu_sample_idx += num_nus[i];
+        end
+    end
+    return nu_sample_idx;
+end
+
 function find_associated_nus(t_sn::sn, t_nus::Array{nu,1})
     n_hi = 19;
     n_lo = 4;
