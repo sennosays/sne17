@@ -82,6 +82,41 @@ function find_rand_N_nus(t_sn::sn)
 
 end
 
+function calc_sig_sample_nus(t_sn::sn,t_N_nus::Int)
+    if t_N_nus < 1
+        return Array(Float64,0,5)
+    else
+        ang_err = sample(nu_data[:,3],replace=true,t_N_nus);
+        mjd = (-0.5-rand(Poisson(13.0))+t_sn.max_date).*ones(Float64,t_N_nus);
+
+        eng = eng_cdf_fn[t_sn.zenith_bin][rand(t_N_nus)];
+
+        kappa = 1./ang_err.^2;
+
+        @assert(minimum(kappa) .> 10.0)
+        sample_mu = (log(rand(t_N_nus))+kappa)./kappa;
+        #println(kappa)
+        theta_prime_nu = acos(sample_mu);
+        phi_prime_nu = 2pi*rand(t_N_nus);
+
+        theta_sn = 0.5*pi-t_sn.dec;
+        phi_sn = t_sn.ra;
+
+
+        tan_phi_nu = sin(phi_prime_nu-phi_sn).*sin(theta_prime_nu);
+        tan_phi_nu ./= cos(phi_prime_nu).*cos(phi_sn).*cos(theta_sn).*sin(theta_prime_nu) +
+            cos(theta_sn).*sin(phi_prime_nu).*sin(phi_sn).*sin(theta_prime_nu)-
+            cos(theta_prime_nu).*sin(theta_sn);
+
+        sin_dec_nu = cos(theta_prime_nu).*cos(theta_sn)+cos(phi_prime_nu-phi_sn).*sin(theta_prime_nu).*sin(theta_sn);
+
+        ra = atan(tan_phi_nu);
+        dec = asin(sin_dec_nu);
+
+        return hcat(mjd,eng,ang_err,ra,dec)
+    end
+end
+
 function find_associated_nus(t_sn::sn, t_nus::Array{nu,1})
     n_hi = 19;
     n_lo = 4;
