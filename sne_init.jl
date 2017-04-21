@@ -299,7 +299,11 @@ function assign_nb!(t_sn::Array{sn,1}, nnb::Array{Float64,1}, ks::Array{Int,1})
 end
 
 function get_T()
-
+    nu_sample = Array(Float64,len_nu,5);
+    nu_sample_idx = get_sample_sig_nu!(my_sn,nu_sample);
+    #if no sample nus set nu_sample_idx to 1
+    #nu_sample_idx = 1;
+    nu_sample[nu_sample_idx:end,:] = calc_sample_nus(len_nu-nu_sample_idx+1)
     nu_sample = calc_sample_nus();
     my_nu[:] = [nu(nu_sample[j,:]...) for j in 1:len_nu];
 
@@ -338,7 +342,7 @@ end
 
 #nu_data = readdlm("../data/modified_upgoing_nu");
 #sne_data = readdlm("../data/sne_data");
-
+srand(13);
 nu_data = readdlm("w_energy_dep/data/modified_upgoing_nu");
 sne_data = readdlm("w_energy_dep/data/sne_data");
 
