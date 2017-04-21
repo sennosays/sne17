@@ -64,6 +64,24 @@ function calc_sample_nus(N_nus=len_nu)
     return hcat(mjd,eng,ang_err,ra,dec)
 end
 
+function find_rand_N_nus(t_sn::sn)
+    if t_sn.z > 0.0
+        t_z = t_sn.z;
+    else
+        rand_z = -1.0;
+        while rand_z <= 0.0
+            sn_idx = round(Int,(len_sne-1)*rand()+1.0);
+            rand_z = my_sn[sn_idx].z;
+        end
+        t_z = rand_z;
+    end
+    @assert(t_z > 0.0)
+    t_D_L = calc_D_L(t_z);
+    num_flux = erg_2_GeV.*nu_flux_coef/t_D_L^2/(1e5)^2;
+    return rand(Poisson(unnormed_num_nus[t_sn.zenith_bin]*num_flux));
+
+end
+
 function find_associated_nus(t_sn::sn, t_nus::Array{nu,1})
     n_hi = 19;
     n_lo = 4;
