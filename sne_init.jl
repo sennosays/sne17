@@ -218,7 +218,7 @@ function get_dec_pdf(t_nu_dec::Array{Float64,1})
     nu_dec_kde = kde(t_nu_dec);
     nu_dec_interp = InterpKDE(nu_dec_kde);
 
-    return xx ->  pdf(nu_dec_interp,xx);
+    return xx ->  pdf(nu_dec_interp,xx)./cos(xx);
 end
 
 function S_dir(t_sn::sn,t_nu::nu)
