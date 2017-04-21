@@ -379,3 +379,15 @@ sig_eng_cdf_fn[:] = [interpolate((sort(sig_eng_cdf[:,i]),),log_eng, Gridded(Line
 
 #assign_nb!(my_sn,readdlm("../data/nb_data")[1:len_sne,1],convert(Array{Int,1},readdlm("../data/ks")[1:len_sne,1]))
 assign_nb!(my_sn,readdlm("w_energy_dep/data/nb_data")[1:len_sne,1],convert(Array{Int,1},readdlm("w_energy_dep/data/ks")[1:len_sne,1]))
+
+
+sig_cdf = readdlm("w_energy_dep/data/sig_eng_cdf");
+unnormed_num_nus = readdlm("w_energy_dep/data/unnormalized_number_of_neutrinos");
+cdf_log_E = sig_cdf[:,1];
+eng_cdf_fn = Array(AbstractInterpolation, len_zenith-1);
+eng_cdf_fn[:] = [interpolate((sort(sig_cdf[:,j]),),cdf_log_E, Gridded(Linear())) for j in 2:len_zenith];
+
+E_cr = 1e52;
+C = 18;
+
+nu_flux_coef = (3/8)*E_cr./(4*pi*C);
