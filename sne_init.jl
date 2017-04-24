@@ -4,7 +4,7 @@ using KernelDensity
 using Optim
 using Interpolations
 using StatsBase
-
+include("constants.jl"); 
 include("cosmology.jl");
 
 immutable nu
@@ -64,7 +64,7 @@ function calc_sample_nus(N_nus=len_nu)
     return hcat(mjd,eng,ang_err,ra,dec)
 end
 
-function find_rand_N_nus(t_sn::sn)
+function find_rand_N_nus(t_sn::sn,t_nu_flux_coef::Float64)
     if t_sn.z > 0.0
         t_z = t_sn.z;
     else
@@ -77,7 +77,7 @@ function find_rand_N_nus(t_sn::sn)
     end
     @assert(t_z > 0.0)
     t_D_L = calc_D_L(t_z);
-    num_flux = erg_2_GeV.*nu_flux_coef/t_D_L^2/(1e5)^2;
+    num_flux = erg_2_GeV.*t_nu_flux_coef/t_D_L^2/(1e5)^2;
     return rand(Poisson(unnormed_num_nus[t_sn.zenith_bin]*num_flux));
 
 end
@@ -117,11 +117,11 @@ function calc_sig_sample_nus(t_sn::sn,t_N_nus::Int)
     end
 end
 
-function get_sample_sig_nu!(t_sn::Array{sn,1},t_nu_sample::Array{Float64,2})
+function get_sample_sig_nu!(t_sn::Array{sn,1},t_nu_sample::Array{Float64,2},t_nu_flux_coef::Float64)
     t_len_sne = length(t_sn);
     num_nus = Array(Int,t_len_sne);
 
-    num_nus[:] = map(find_rand_N_nus,t_sn);
+    num_nus[:] = map(a-> find_rand_N_nus(a,t_nu_flux_coef),t_sn);
 
     nu_sample_idx = 1;
     for i in 1:t_len_sne
@@ -313,7 +313,7 @@ function get_T(E_cr::Float64, frac_sn::Float64)
     nu_sample = Array(Float64,len_nu,5);
 
     #get sample neutrinos based on the subset sample of SN
-    nu_sample_idx = get_sample_sig_nu!(sample(my_sn,N_sn),nu_sample);
+    nu_sample_idx = get_sample_sig_nu!(sample(my_sn,N_sn),nu_sample,nu_flux_coef);
     #if no sample nus set nu_sample_idx to 1
     nu_sample_idx = 1;
     nu_sample[nu_sample_idx:end,:] = calc_sample_nus(len_nu-nu_sample_idx+1)

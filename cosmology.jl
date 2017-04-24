@@ -1,7 +1,3 @@
-if !isdefined(:c) 
-	const c = 29979245800.0;               #speed of light [cm/s]
-end
-
 function dt_star_dz(this_z)
 
   this_opz = 1.0 + this_z;

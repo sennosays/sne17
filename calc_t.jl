@@ -4,6 +4,7 @@ using Distributions
 using KernelDensity
 using Optim
 using StatsBase
+
 @everywhere include("sne_init.jl");
 @everywhere get_T(1e52,1.0);
 n_exp =5
