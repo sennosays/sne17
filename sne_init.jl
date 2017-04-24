@@ -327,8 +327,10 @@ function get_T(E_cr::Float64, frac_sn::Float64)
 
     #get sample neutrinos based on the subset sample of SN
     nu_sample_idx = get_sample_sig_nu!(sample(my_sn,N_sn),nu_sample,nu_flux_coef);
+    
     #if no sample nus set nu_sample_idx to 1
-    nu_sample_idx = 1;
+    #nu_sample_idx = 1;
+    
     nu_sample[nu_sample_idx:end,:] = calc_sample_nus(len_nu-nu_sample_idx+1)
     my_nu[:] = [nu(nu_sample[j,:]...) for j in 1:len_nu];
 

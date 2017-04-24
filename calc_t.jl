@@ -7,9 +7,9 @@ using StatsBase
 
 @everywhere include("sne_init.jl");
 @everywhere get_T(1e52,1.0);
-n_exp = 5
+n_exp = 10000;
 
-my_E_cr = 1e52; 
+my_E_cr = 1e46; 
 my_sn_frac = 1.0; 
 
 
