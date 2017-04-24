@@ -298,10 +298,22 @@ function assign_nb!(t_sn::Array{sn,1}, nnb::Array{Float64,1}, ks::Array{Int,1})
     nothing;
 end
 
-function get_T()
-    srand(13)
+function get_T(E_cr::Float64, frac_sn::Float64)
+    @assert(0.0 < frac_sn <= 1.0);
+    @assert(1e40 < E_cr < 1e55);
+
+    C = 18;
+
+    nu_flux_coef = (3/8)*E_cr./(4*pi*C);
+
+    #pick a Poisson random number corresponding to the fraction of
+    # SN with jets
+    N_sn = rand(Poisson(frac_sn*len_sne));
+
     nu_sample = Array(Float64,len_nu,5);
-    #nu_sample_idx = get_sample_sig_nu!(my_sn,nu_sample);
+
+    #get sample neutrinos based on the subset sample of SN
+    nu_sample_idx = get_sample_sig_nu!(sample(my_sn,N_sn),nu_sample);
     #if no sample nus set nu_sample_idx to 1
     nu_sample_idx = 1;
     nu_sample[nu_sample_idx:end,:] = calc_sample_nus(len_nu-nu_sample_idx+1)
@@ -390,8 +402,3 @@ unnormed_num_nus = readdlm("w_energy_dep/data/unnormalized_number_of_neutrinos")
 cdf_log_E = sig_cdf[:,1];
 eng_cdf_fn = Array(AbstractInterpolation, len_zenith-1);
 eng_cdf_fn[:] = [interpolate((sort(sig_cdf[:,j]),),cdf_log_E, Gridded(Linear())) for j in 2:len_zenith];
-
-E_cr = 1e52;
-C = 18;
-
-nu_flux_coef = (3/8)*E_cr./(4*pi*C);
