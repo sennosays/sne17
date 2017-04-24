@@ -82,6 +82,16 @@ function find_rand_N_nus(t_sn::sn,t_nu_flux_coef::Float64)
 
 end
 
+function calc_sample_mu(t_kappa::Float64)
+	if t_kappa > 10.0; 
+		return (log(rand())+t_kappa)./t_kappa;
+	elseif 0.0 < t_kappa < 10.
+		return log(rand()*2.0*sinh(t_kappa)/t_kappa + exp(-t_kappa))/t_kappa; 
+	else
+		error("strange kappa")
+	end
+end
+
 function calc_sig_sample_nus(t_sn::sn,t_N_nus::Int)
     if t_N_nus < 1
         return Array(Float64,0,5)
@@ -93,9 +103,12 @@ function calc_sig_sample_nus(t_sn::sn,t_N_nus::Int)
 
         kappa = 1./ang_err.^2;
 
-        @assert(minimum(kappa) .> 10.0)
-        sample_mu = (log(rand(t_N_nus))+kappa)./kappa;
+        #@assert(minimum(kappa) .> 10.0)
+	#sample_mu = (log(rand(t_N_nus))+kappa)./kappa;
         #println(kappa)
+
+	sample_mu = map(calc_sample_mu,kappa); 
+
         theta_prime_nu = acos(sample_mu);
         phi_prime_nu = 2pi*rand(t_N_nus);
 
