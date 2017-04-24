@@ -4,9 +4,9 @@ using Distributions
 using KernelDensity
 using Optim
 using StatsBase
-@everywhere include("sne_init.jl");
+@everywhere include("w_energy_dep/code/sne_init.jl");
 @everywhere get_T();
-n_exp =10
+n_exp =1000
 
 my_ts = SharedArray(Float64,n_exp,len_sne+1);
 tic()
@@ -19,4 +19,4 @@ tic()
 end
 toc();
 #rmprocs(workers())
-writedlm(string("../results/T_",n_exp,".dat"),my_ts);
+writedlm(string("w_energy_dep/results/T_w_sig_",n_exp,".dat"),my_ts);
