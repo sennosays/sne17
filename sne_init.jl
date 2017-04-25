@@ -264,7 +264,8 @@ function S_time(t_sn::sn, t_nu::nu)
 end
 
 function calc_T(nns::Array{Float64,1},t_sn::Array{sn,1})
-     inner_sum = [sum(log(nns[i].*t_sn[i].coefs+ 1.0)) for i in 1:len_sne]
+    @assert minimum(minimum([nns[i].*t_sn[i].coefs+1.0 for i in 1:len_sne])) > 0.0  
+    inner_sum = [sum(log(nns[i].*t_sn[i].coefs+ 1.0)) for i in 1:len_sne]
 
     return sum( nns .- inner_sum);
 end
