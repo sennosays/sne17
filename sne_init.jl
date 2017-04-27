@@ -86,16 +86,13 @@ function calc_sample_mu(t_kappa::Float64)
 	if t_kappa > 10.0; 
 		return (log(rand())+t_kappa)./t_kappa;
 	elseif 0.0 < t_kappa < 10.
-<<<<<<< HEAD
 		return log(rand()*2.0*sinh(t_kappa) + exp(-t_kappa))/t_kappa; 
-=======
 		t_result = log(rand()*2.0*sinh(t_kappa)/t_kappa + exp(-t_kappa))/t_kappa; 
 		@assert -1.0 <= t_result <= 1.0
 		if !(-1.0 <= t_result <= 1.0)
 			println("bad kappa is ",t_kappa); 
 		end
 		return t_result; 
->>>>>>> efccd2cea91948a264bce1d95deba35770a8aa42
 	else
 		error("strange kappa")
 	end
