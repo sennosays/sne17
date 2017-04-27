@@ -87,12 +87,6 @@ function calc_sample_mu(t_kappa::Float64)
 		return (log(rand())+t_kappa)./t_kappa;
 	elseif 0.0 < t_kappa < 10.
 		return log(rand()*2.0*sinh(t_kappa) + exp(-t_kappa))/t_kappa; 
-		t_result = log(rand()*2.0*sinh(t_kappa)/t_kappa + exp(-t_kappa))/t_kappa; 
-		@assert -1.0 <= t_result <= 1.0
-		if !(-1.0 <= t_result <= 1.0)
-			println("bad kappa is ",t_kappa); 
-		end
-		return t_result; 
 	else
 		error("strange kappa")
 	end
@@ -321,7 +315,7 @@ function assign_nb!(t_sn::Array{sn,1}, nnb::Array{Float64,1}, ks::Array{Int,1})
 end
 
 function get_T(E_cr::Float64, frac_sn::Float64)
-    @assert(0.0 < frac_sn <= 1.0);
+    @assert(0.0 <= frac_sn <= 1.0);
     @assert(1e40 < E_cr < 1e55);
     C = 18;
 
@@ -333,12 +327,16 @@ function get_T(E_cr::Float64, frac_sn::Float64)
 
     nu_sample = Array(Float64,len_nu,5);
 
-    #get sample neutrinos based on the subset sample of SN
-    nu_sample_idx = get_sample_sig_nu!(sample(my_sn,N_sn),nu_sample,nu_flux_coef);
-    
-    #if no sample nus set nu_sample_idx to 1
-    #nu_sample_idx = 1;
-    
+    if frac_sn > 0.0 
+    	#get sample neutrinos based on the subset sample of SN
+    	nu_sample_idx = get_sample_sig_nu!(sample(my_sn,N_sn),nu_sample,nu_flux_coef);
+    elseif frac_sn == 0.0 
+    	#if no sample nus set nu_sample_idx to 1
+    	nu_sample_idx = 1;
+    else 
+	error("bad SN fraction"); 
+    end
+    	
     nu_sample[nu_sample_idx:end,:] = calc_sample_nus(len_nu-nu_sample_idx+1)
     my_nu[:] = [nu(nu_sample[j,:]...) for j in 1:len_nu];
 
