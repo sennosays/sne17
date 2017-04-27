@@ -86,7 +86,7 @@ function calc_sample_mu(t_kappa::Float64)
 	if t_kappa > 10.0; 
 		return (log(rand())+t_kappa)./t_kappa;
 	elseif 0.0 < t_kappa < 10.
-		return log(rand()*2.0*sinh(t_kappa)/t_kappa + exp(-t_kappa))/t_kappa; 
+		return log(rand()*2.0*sinh(t_kappa) + exp(-t_kappa))/t_kappa; 
 	else
 		error("strange kappa")
 	end
@@ -264,7 +264,9 @@ function S_time(t_sn::sn, t_nu::nu)
 end
 
 function calc_T(nns::Array{Float64,1},t_sn::Array{sn,1})
-    @assert minimum(minimum([nns[i].*t_sn[i].coefs+1.0 for i in 1:len_sne])) > 0.0  
+    
+    array_of_mins = map(minimum,[nns[i].*t_sn[i].coefs+1.0 for i in 1:len_sne]);
+    @assert minimum(array_of_mins) > 0.0  
     inner_sum = [sum(log(nns[i].*t_sn[i].coefs+ 1.0)) for i in 1:len_sne]
 
     return sum( nns .- inner_sum);
