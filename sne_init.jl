@@ -371,7 +371,6 @@ end
 
 #nu_data = readdlm("../data/modified_upgoing_nu");
 #sne_data = readdlm("../data/sne_data");
-srand(13);
 nu_data = readdlm("data/modified_upgoing_nu");
 sne_data = readdlm("data/sne_data");
 
