@@ -86,7 +86,16 @@ function calc_sample_mu(t_kappa::Float64)
 	if t_kappa > 10.0; 
 		return (log(rand())+t_kappa)./t_kappa;
 	elseif 0.0 < t_kappa < 10.
+<<<<<<< HEAD
 		return log(rand()*2.0*sinh(t_kappa) + exp(-t_kappa))/t_kappa; 
+=======
+		t_result = log(rand()*2.0*sinh(t_kappa)/t_kappa + exp(-t_kappa))/t_kappa; 
+		@assert -1.0 <= t_result <= 1.0
+		if !(-1.0 <= t_result <= 1.0)
+			println("bad kappa is ",t_kappa); 
+		end
+		return t_result; 
+>>>>>>> efccd2cea91948a264bce1d95deba35770a8aa42
 	else
 		error("strange kappa")
 	end
@@ -286,7 +295,7 @@ end
 function calc_coefs!(t_sn::sn)
 
     if length(t_sn.associated_nus) > 0
-	    temp_s = map(x-> S_dir(t_sn,x),t_sn.associated_nus);
+	temp_s = map(x-> S_dir(t_sn,x),t_sn.associated_nus);
     	temp_s .*= map(x-> S_time(t_sn,x),t_sn.associated_nus);
     	temp_s .*= map(x-> 10^wrapper_log_sig_energy_pdf[t_sn.zenith_bin](x),[t_sn.associated_nus[j].log_eng for j in 1:length(t_sn.associated_nus)]);
 
@@ -353,6 +362,15 @@ function get_T(E_cr::Float64, frac_sn::Float64)
     lower = [maximum(-1./my_sn[i].coefs) for i in 1:len_sne];
     upper = Inf.*ones(Float64,len_sne);
 
+
+    if maximum(lower) > 0.0 
+    	println("we have a positive lower bound"); 
+    	max_idx = indmax(lower)
+	println("this SN has ",length(my_sn[max_idx].associated_nus)," neutrinos"); 
+	println(my_sn[max_idx].coefs);
+	println(maximum(-1./my_sn[max_idx].coefs)); 
+    end
+    
     opt_T = optimize(OnceDifferentiable(ns-> calc_T(ns,my_sn), (x,s) -> grad_T!(x,s,my_sn)),zeros(Float64,len_sne),lower,upper,Fminbox(),optimizer = ConjugateGradient);
     #opt_T = optimize(ns-> calc_T(ns,my_sn),(x,s) -> grad_T!(x,s,my_sn),(xx,ss) -> hess_T!(xx,ss,my_sn),zeros(Float64,len_sne),Newton())
 
