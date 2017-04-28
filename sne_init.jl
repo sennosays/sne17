@@ -4,7 +4,7 @@ using KernelDensity
 using Optim
 using Interpolations
 using StatsBase
-include("constants.jl"); 
+#include("constants.jl"); 
 include("cosmology.jl");
 
 immutable nu
@@ -123,10 +123,12 @@ function calc_sig_sample_nus(t_sn::sn,t_N_nus::Int)
 
         sin_dec_nu = cos(theta_prime_nu).*cos(theta_sn)+cos(phi_prime_nu-phi_sn).*sin(theta_prime_nu).*sin(theta_sn);
 
-        ra = atan(tan_phi_nu);
-        dec = asin(sin_dec_nu);
+        t_ra = atan(tan_phi_nu);
+        t_dec = asin(sin_dec_nu);
 
-        return hcat(mjd,eng,ang_err,ra,dec)
+	@assert -pi/2 < t_dec < pi/2 
+
+        return hcat(mjd,eng,ang_err,t_ra,t_dec)
     end
 end
 
