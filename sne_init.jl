@@ -233,7 +233,7 @@ function get_dec_pdf(t_nu_dec::Array{Float64,1})
     nu_dec_kde = kde(t_nu_dec);
     nu_dec_interp = InterpKDE(nu_dec_kde);
 
-    return xx ->  pdf(nu_dec_interp,xx)./cos(xx);
+    return xx ->  pdf(nu_dec_interp,xx);
 end
 
 function S_dir(t_sn::sn,t_nu::nu)
@@ -250,7 +250,7 @@ function S_dir(t_sn::sn,t_nu::nu)
 
     @assert(!isnan(result))
     @assert result >= 0.0; 
-    return result;
+    return cos(t_nu.dec)*result;
     #return exp(-0.5*Delta_Psi^2/t_nu.ang_err^2)/(2*pi*t_nu.ang_err^2);
 end
 
