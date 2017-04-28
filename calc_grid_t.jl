@@ -25,7 +25,7 @@ my_ts = SharedArray(Float64,n_exp,len_sne+1);
         		my_ts[n,1:end-1] = t_opt_T[1];
         		my_ts[n,end] = t_opt_T[2];
 		end
-		@sync writedlm(string("results/T_",n_exp,"_",my_E_cr[ii],"_",my_sn_frac[jj],".dat"),my_ts);
+		@sync writedlm(string("results/T_",n_exp,"_",round(log10(my_E_cr[ii]),1),"_",my_sn_frac[jj],".dat"),my_ts);
 	end
 end
 

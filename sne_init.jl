@@ -126,7 +126,8 @@ function calc_sig_sample_nus(t_sn::sn,t_N_nus::Int)
         t_ra = atan(tan_phi_nu);
         t_dec = asin(sin_dec_nu);
 
-	@assert -pi/2 < t_dec < pi/2 
+	@assert -pi/2 < minimum(t_dec)
+	@assert maximum(t_dec) < pi/2 
 
         return hcat(mjd,eng,ang_err,t_ra,t_dec)
     end
@@ -233,7 +234,7 @@ function get_dec_pdf(t_nu_dec::Array{Float64,1})
     nu_dec_kde = kde(t_nu_dec);
     nu_dec_interp = InterpKDE(nu_dec_kde);
 
-    return xx ->  pdf(nu_dec_interp,xx);
+    return xx ->  abs(pdf(nu_dec_interp,xx));
 end
 
 function S_dir(t_sn::sn,t_nu::nu)
