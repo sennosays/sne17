@@ -247,7 +247,7 @@ function S_dir(t_sn::sn,t_nu::nu)
     end
 
     @assert(!isnan(result))
-
+    @assert result >= 0.0; 
     return result;
     #return exp(-0.5*Delta_Psi^2/t_nu.ang_err^2)/(2*pi*t_nu.ang_err^2);
 end
