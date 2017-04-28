@@ -4,7 +4,7 @@ using KernelDensity
 using Optim
 using Interpolations
 using StatsBase
-#include("constants.jl"); 
+include("constants.jl"); 
 include("cosmology.jl");
 
 immutable nu
