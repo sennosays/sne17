@@ -4,7 +4,10 @@ using KernelDensity
 using Optim
 using Interpolations
 using StatsBase
-include("constants.jl"); 
+if !isdefined(:c)
+	include("constants.jl");
+end
+ 
 include("cosmology.jl");
 
 immutable nu
@@ -126,7 +129,7 @@ function calc_sig_sample_nus(t_sn::sn,t_N_nus::Int)
         t_ra = atan(tan_phi_nu);
         t_dec = asin(sin_dec_nu);
 
-	@assert -pi/2 < t_dec < pi/2 
+	#@assert -pi/2 < t_dec < pi/2 
 
         return hcat(mjd,eng,ang_err,t_ra,t_dec)
     end
@@ -151,11 +154,14 @@ end
 function find_associated_nus(t_sn::sn, t_nus::Array{nu,1})
     n_hi = 19;
     n_lo = 4;
+    alpha = 0.99999;
+    t_len_nu = length(t_nus); 
+    in_time_window = [t_sn.max_date - n_hi <= t_nus[j].mjd <= t_sn.max_date - n_lo for j in 1:t_len_nu]; 
 
-    in_time_window = [t_sn.max_date - n_hi <= t_nus[j].mjd <= t_sn.max_date - n_lo for j in 1:len_nu]
+    t_kappa = [1./t_nus[j].ang_err.^2 for j in 1:t_len_nu]; 
 
     in_ang_window = [(sin(t_sn.dec)*sin(t_nus[j].dec) + cos(t_sn.dec)*cos(t_nus[j].dec)*
-        cos(t_sn.ra-t_nus[j].ra)) > cos(5.0*t_nus[j].ang_err) for j in 1:len_nu]
+        cos(t_sn.ra-t_nus[j].ra)) > 1.0 + log(1.0-alpha*(1.0-exp(-2.0*t_kappa[j])))/t_kappa[j] for j in 1:t_len_nu]
 
     return in_time_window.*in_ang_window;
 end
@@ -168,11 +174,11 @@ end
 
 function get_energy_pdf!(t_zenith::Array{Float64,1}, t_proxy::Array{Float64,1})
 
-    #AA = readcsv("../data/sig_num_nus_pdf");
-    #BB = readcsv("../data/atm_num_nus_pdf");
+    AA = readcsv(string(dir_prefix,"sig_num_nus_pdf"));
+    BB = readcsv(string(dir_prefix,"atm_num_nus_pdf"));
 
-    AA = readcsv("data/sig_num_nus_pdf");
-    BB = readcsv("data/atm_num_nus_pdf");
+    #AA = readcsv("data/sig_num_nus_pdf");
+    #BB = readcsv("data/atm_num_nus_pdf");
 
 
 
@@ -233,7 +239,7 @@ function get_dec_pdf(t_nu_dec::Array{Float64,1})
     nu_dec_kde = kde(t_nu_dec);
     nu_dec_interp = InterpKDE(nu_dec_kde);
 
-    return xx ->  pdf(nu_dec_interp,xx);
+    return xx ->  abs(pdf(nu_dec_interp,xx));
 end
 
 function S_dir(t_sn::sn,t_nu::nu)
@@ -338,7 +344,7 @@ function get_T(E_cr::Float64, frac_sn::Float64)
     else 
 	error("bad SN fraction"); 
     end
-    	
+    println(nu_sample_idx);    	
     nu_sample[nu_sample_idx:end,:] = calc_sample_nus(len_nu-nu_sample_idx+1)
     my_nu[:] = [nu(nu_sample[j,:]...) for j in 1:len_nu];
 
@@ -351,8 +357,6 @@ function get_T(E_cr::Float64, frac_sn::Float64)
         add_nu!(my_sn[i],my_nu[associated_nus])
       end
     end
-
-    #map(x-> add_nu!(x,my_nu[find_associated_nus(x,my_nu)]),my_sn);
 
     map(calc_coefs!,my_sn);
 
@@ -383,11 +387,17 @@ function bootstrap_T(NN::Int)
         end
         return my_ts;
 end
-
-#nu_data = readdlm("../data/modified_upgoing_nu");
-#sne_data = readdlm("../data/sne_data");
-nu_data = readdlm("data/modified_upgoing_nu");
-sne_data = readdlm("data/sne_data");
+c_dir = splitdir(pwd())[end]; 
+if c_dir == "code" 
+	dir_prefix = "data/"; 
+elseif c_dir == "sne17"
+	dir_prefix = "w_energy_dep/data/";
+else
+	error("unknown current directory"); 
+end
+ 
+nu_data = readdlm(string(dir_prefix,"modified_upgoing_nu"));
+sne_data = readdlm(string(dir_prefix,"sne_data"));
 
 len_sne = 27;
 len_nu = 69227;
@@ -406,8 +416,7 @@ len_proxy = 51;
 zenith = Array(Float64,len_zenith);
 proxy = Array(Float64,len_proxy);
 
-#bkg_nus = convert(Array{Int,1},readcsv("../data/bkg_nus_indx")[:]);
-bkg_nus = convert(Array{Int,1},readcsv("data/bkg_nus_indx")[:]);
+bkg_nus = convert(Array{Int,1},readcsv(string(dir_prefix,"bkg_nus_indx"))[:]);
 
 B_nu_dec = get_dec_pdf(nu_data[bkg_nus,5]);
 wrapper_log_sig_energy_pdf, wrapper_log_atm_energy_pdf = get_energy_pdf!(zenith,proxy);
@@ -417,19 +426,23 @@ wrapper_log_sig_energy_pdf, wrapper_log_atm_energy_pdf = get_energy_pdf!(zenith,
 
 sig_eng_cdf_fn = Array(AbstractInterpolation,len_zenith);
 #sig_eng_cdf = readdlm("../data/sig_eng_cdf");
-sig_eng_cdf = readdlm("data/sig_eng_cdf");
+sig_eng_cdf = readdlm(string(dir_prefix,"sig_eng_cdf"));
 
 log_eng = sig_eng_cdf[:,1];
 
 sig_eng_cdf_fn[:] = [interpolate((sort(sig_eng_cdf[:,i]),),log_eng, Gridded(Linear())) for i in 1:len_zenith] ;
 
 
-#assign_nb!(my_sn,readdlm("../data/nb_data")[1:len_sne,1],convert(Array{Int,1},readdlm("../data/ks")[1:len_sne,1]))
-assign_nb!(my_sn,readdlm("data/nb_data")[1:len_sne,1],convert(Array{Int,1},readdlm("data/ks")[1:len_sne,1]))
+assign_nb!(my_sn,readdlm(string(dir_prefix,"nb_data"))[1:len_sne,1],convert(Array{Int,1},readdlm(string(dir_prefix,"ks"))[1:len_sne,1]))
+#assign_nb!(my_sn,readdlm("data/nb_data")[1:len_sne,1],convert(Array{Int,1},readdlm("data/ks")[1:len_sne,1]))
 
 
-sig_cdf = readdlm("data/sig_eng_cdf");
-unnormed_num_nus = readdlm("data/unnormalized_number_of_neutrinos");
+#sig_cdf = readdlm("data/sig_eng_cdf");
+#unnormed_num_nus = readdlm("data/unnormalized_number_of_neutrinos");
+
+sig_cdf = readdlm(string(dir_prefix,"sig_eng_cdf"));
+unnormed_num_nus = readdlm(string(dir_prefix,"unnormalized_number_of_neutrinos"));
+
 cdf_log_E = sig_cdf[:,1];
 eng_cdf_fn = Array(AbstractInterpolation, len_zenith-1);
 eng_cdf_fn[:] = [interpolate((sort(sig_cdf[:,j]),),cdf_log_E, Gridded(Linear())) for j in 2:len_zenith];
