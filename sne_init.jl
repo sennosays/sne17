@@ -7,7 +7,7 @@ using StatsBase
 if !isdefined(:c)
 	include("constants.jl");
 end
- 
+
 include("cosmology.jl");
 
 immutable nu
@@ -86,13 +86,16 @@ function find_rand_N_nus(t_sn::sn,t_nu_flux_coef::Float64)
 end
 
 function calc_sample_mu(t_kappa::Float64)
-	if t_kappa > 10.0; 
-		return (log(rand())+t_kappa)./t_kappa;
-	elseif 0.0 < t_kappa < 10.
-		return log(rand()*2.0*sinh(t_kappa) + exp(-t_kappa))/t_kappa; 
-	else
-		error("strange kappa")
-	end
+    if t_kappa > 10.0;
+        return 1.0 + log(rand()+exp(-2.*t_kappa))/t_kappa;
+    elseif 1e-2 < t_kappa <= 10.
+        return log(2.0*rand()*sinh(t_kappa) + exp(-t_kappa))/t_kappa;
+    elseif 0.0 < t_kappa <= 1e-2
+        t_coef = 1.0-2.0*rand();
+        return log(1.0 - t_coef*t_kappa + 0.5*t_kappa^2 - t_coef*t_kappa^3/6)/t_kappa
+    else
+        error("strange kappa")
+    end
 end
 
 function calc_sig_sample_nus(t_sn::sn,t_N_nus::Int)
@@ -110,7 +113,7 @@ function calc_sig_sample_nus(t_sn::sn,t_N_nus::Int)
 	#sample_mu = (log(rand(t_N_nus))+kappa)./kappa;
         #println(kappa)
 
-	sample_mu = map(calc_sample_mu,kappa); 
+	sample_mu = map(calc_sample_mu,kappa);
 
         theta_prime_nu = acos(sample_mu);
         phi_prime_nu = 2pi*rand(t_N_nus);
@@ -129,7 +132,7 @@ function calc_sig_sample_nus(t_sn::sn,t_N_nus::Int)
         t_ra = atan(tan_phi_nu);
         t_dec = asin(sin_dec_nu);
 
-	#@assert -pi/2 < t_dec < pi/2 
+	#@assert -pi/2 < t_dec < pi/2
 
         return hcat(mjd,eng,ang_err,t_ra,t_dec)
     end
@@ -155,10 +158,10 @@ function find_associated_nus(t_sn::sn, t_nus::Array{nu,1})
     n_hi = 19;
     n_lo = 4;
     alpha = 0.99999;
-    t_len_nu = length(t_nus); 
-    in_time_window = [t_sn.max_date - n_hi <= t_nus[j].mjd <= t_sn.max_date - n_lo for j in 1:t_len_nu]; 
+    t_len_nu = length(t_nus);
+    in_time_window = [t_sn.max_date - n_hi <= t_nus[j].mjd <= t_sn.max_date - n_lo for j in 1:t_len_nu];
 
-    t_kappa = [1./t_nus[j].ang_err.^2 for j in 1:t_len_nu]; 
+    t_kappa = [1./t_nus[j].ang_err.^2 for j in 1:t_len_nu];
 
     in_ang_window = [(sin(t_sn.dec)*sin(t_nus[j].dec) + cos(t_sn.dec)*cos(t_nus[j].dec)*
         cos(t_sn.ra-t_nus[j].ra)) > 1.0 + log(1.0-alpha*(1.0-exp(-2.0*t_kappa[j])))/t_kappa[j] for j in 1:t_len_nu]
@@ -248,18 +251,16 @@ function S_dir(t_sn::sn,t_nu::nu)
 
     if kappa > 10.0
         result = kappa/(2*pi)*exp(kappa*(mu-1.0))
-    elseif 0.0 < kappa <= 10.0
+    elseif 1e-2 < kappa <= 10.0
         result = kappa/(4*pi*sinh(kappa))*exp(kappa*mu);
+    elseif 0.0 < kappa <= 1e-2
+        result = (1.0 + kappa*mu)/(4*pi);
     else
         error("strange kappa");
     end
-
-    @assert(!isnan(result))
-    @assert result >= 0.0; 
+    @assert result >= 0.0;
     return cos(t_nu.dec)*result;
-    #return exp(-0.5*Delta_Psi^2/t_nu.ang_err^2)/(2*pi*t_nu.ang_err^2);
 end
-
 
 ## is it ok to use a Probability Mass Function for the time signal liklihood if my
 ## Background is expressed as a Probability Density Function? I think it is if you take the
@@ -272,9 +273,9 @@ function S_time(t_sn::sn, t_nu::nu)
 end
 
 function calc_T(nns::Array{Float64,1},t_sn::Array{sn,1})
-    
+
     array_of_mins = map(minimum,[nns[i].*t_sn[i].coefs+1.0 for i in 1:len_sne]);
-    @assert minimum(array_of_mins) > 0.0  
+    @assert minimum(array_of_mins) > 0.0
     inner_sum = [sum(log(nns[i].*t_sn[i].coefs+ 1.0)) for i in 1:len_sne]
 
     return sum( nns .- inner_sum);
@@ -335,16 +336,16 @@ function get_T(E_cr::Float64, frac_sn::Float64)
 
     nu_sample = Array(Float64,len_nu,5);
 
-    if frac_sn > 0.0 
+    if frac_sn > 0.0
     	#get sample neutrinos based on the subset sample of SN
     	nu_sample_idx = get_sample_sig_nu!(sample(my_sn,N_sn),nu_sample,nu_flux_coef);
-    elseif frac_sn == 0.0 
+    elseif frac_sn == 0.0
     	#if no sample nus set nu_sample_idx to 1
     	nu_sample_idx = 1;
-    else 
-	error("bad SN fraction"); 
+    else
+	error("bad SN fraction");
     end
-    println(nu_sample_idx);    	
+    println(nu_sample_idx);
     nu_sample[nu_sample_idx:end,:] = calc_sample_nus(len_nu-nu_sample_idx+1)
     my_nu[:] = [nu(nu_sample[j,:]...) for j in 1:len_nu];
 
@@ -364,14 +365,14 @@ function get_T(E_cr::Float64, frac_sn::Float64)
     upper = Inf.*ones(Float64,len_sne);
 
 
-    if maximum(lower) > 0.0 
-    	println("we have a positive lower bound"); 
+    if maximum(lower) > 0.0
+    	println("we have a positive lower bound");
     	max_idx = indmax(lower)
-	println("this SN has ",length(my_sn[max_idx].associated_nus)," neutrinos"); 
+	println("this SN has ",length(my_sn[max_idx].associated_nus)," neutrinos");
 	println(my_sn[max_idx].coefs);
-	println(maximum(-1./my_sn[max_idx].coefs)); 
+	println(maximum(-1./my_sn[max_idx].coefs));
     end
-    
+
     opt_T = optimize(OnceDifferentiable(ns-> calc_T(ns,my_sn), (x,s) -> grad_T!(x,s,my_sn)),zeros(Float64,len_sne),lower,upper,Fminbox(),optimizer = ConjugateGradient);
     #opt_T = optimize(ns-> calc_T(ns,my_sn),(x,s) -> grad_T!(x,s,my_sn),(xx,ss) -> hess_T!(xx,ss,my_sn),zeros(Float64,len_sne),Newton())
 
@@ -387,15 +388,15 @@ function bootstrap_T(NN::Int)
         end
         return my_ts;
 end
-c_dir = splitdir(pwd())[end]; 
-if c_dir == "code" 
-	dir_prefix = "data/"; 
+c_dir = splitdir(pwd())[end];
+if c_dir == "code"
+	dir_prefix = "data/";
 elseif c_dir == "sne17"
 	dir_prefix = "w_energy_dep/data/";
 else
-	error("unknown current directory"); 
+	error("unknown current directory");
 end
- 
+
 nu_data = readdlm(string(dir_prefix,"modified_upgoing_nu"));
 sne_data = readdlm(string(dir_prefix,"sne_data"));
 
