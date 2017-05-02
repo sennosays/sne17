@@ -85,6 +85,24 @@ function find_rand_N_nus(t_sn::sn,t_nu_flux_coef::Float64)
 
 end
 
+function find_N_nus(t_sn::sn,t_nu_flux_coef::Float64)
+    if t_sn.z > 0.0
+        t_z = t_sn.z;
+    else
+        rand_z = -1.0;
+        while rand_z <= 0.0
+            sn_idx = round(Int,(len_sne-1)*rand()+1.0);
+            rand_z = my_sn[sn_idx].z;
+        end
+        t_z = rand_z;
+    end
+    @assert(t_z > 0.0)
+    t_D_L = calc_D_L(t_z);
+    num_flux = erg_2_GeV.*t_nu_flux_coef/t_D_L^2/(1e5)^2;
+    return unnormed_num_nus[t_sn.zenith_bin]*num_flux;
+
+end
+
 function calc_sample_mu(t_kappa::Float64)
     if t_kappa > 10.0;
         return 1.0 + log(rand()+exp(-2.*t_kappa))/t_kappa;
@@ -109,11 +127,7 @@ function calc_sig_sample_nus(t_sn::sn,t_N_nus::Int)
 
         kappa = 1./ang_err.^2;
 
-        #@assert(minimum(kappa) .> 10.0)
-	#sample_mu = (log(rand(t_N_nus))+kappa)./kappa;
-        #println(kappa)
-
-	sample_mu = map(calc_sample_mu,kappa);
+				sample_mu = map(calc_sample_mu,kappa);
 
         theta_prime_nu = acos(sample_mu);
         phi_prime_nu = 2pi*rand(t_N_nus);
@@ -122,17 +136,14 @@ function calc_sig_sample_nus(t_sn::sn,t_N_nus::Int)
         phi_sn = t_sn.ra;
 
 
-        tan_phi_nu = sin(phi_prime_nu-phi_sn).*sin(theta_prime_nu);
-        tan_phi_nu ./= cos(phi_prime_nu).*cos(phi_sn).*cos(theta_sn).*sin(theta_prime_nu) +
-            cos(theta_sn).*sin(phi_prime_nu).*sin(phi_sn).*sin(theta_prime_nu)-
-            cos(theta_prime_nu).*sin(theta_sn);
+				tan_phi_nu = cos(phi_sn).*sin(phi_prime_nu).*sin(theta_prime_nu) +
+					sin(phi_sn).*(cos(phi_prime_nu).*cos(theta_sn).*sin(theta_prime_nu)+cos(theta_prime_nu).*sin(theta_sn));
+				tan_phi_nu ./= cos(phi_prime_nu).*cos(phi_sn).*cos(theta_sn).*sin(theta_prime_nu) - sin(phi_prime_nu).*sin(phi_sn).*sin(theta_prime_nu)+
+					cos(phi_sn).*cos(theta_prime_nu).*sin(theta_sn);
 
-        sin_dec_nu = cos(theta_prime_nu).*cos(theta_sn)+cos(phi_prime_nu-phi_sn).*sin(theta_prime_nu).*sin(theta_sn);
-
-        t_ra = atan(tan_phi_nu);
+				sin_dec_nu = cos(theta_prime_nu).*cos(theta_sn)-cos(phi_prime_nu).*sin(theta_prime_nu).*sin(theta_sn);
+        t_ra = atan(tan_phi_nu)+pi;
         t_dec = asin(sin_dec_nu);
-
-	#@assert -pi/2 < t_dec < pi/2
 
         return hcat(mjd,eng,ang_err,t_ra,t_dec)
     end
@@ -158,17 +169,33 @@ function find_associated_nus(t_sn::sn, t_nus::Array{nu,1})
     n_hi = 19;
     n_lo = 4;
     alpha = 0.99999;
+    t_coef = 1.0-2.0*alpha;
+
     t_len_nu = length(t_nus);
+
     in_time_window = [t_sn.max_date - n_hi <= t_nus[j].mjd <= t_sn.max_date - n_lo for j in 1:t_len_nu];
 
     t_kappa = [1./t_nus[j].ang_err.^2 for j in 1:t_len_nu];
+    t_mu = [sin(t_sn.dec)*sin(t_nus[j].dec) + cos(t_sn.dec)*
+        cos(t_nus[j].dec)*cos(t_sn.ra-t_nus[j].ra) for j in 1:t_len_nu];
 
-    in_ang_window = [(sin(t_sn.dec)*sin(t_nus[j].dec) + cos(t_sn.dec)*cos(t_nus[j].dec)*
-        cos(t_sn.ra-t_nus[j].ra)) > 1.0 + log(1.0-alpha*(1.0-exp(-2.0*t_kappa[j])))/t_kappa[j] for j in 1:t_len_nu]
+    in_ang_window = Array(Bool,t_len_nu);
+    acceptance_mu = Array(Float64,t_len_nu);
 
-    return in_time_window.*in_ang_window;
+    for j in 1:t_len_nu
+        if t_kappa[j] > 10.0
+            acceptance_mu[j] = 1.0 + log(1.0-alpha)/t_kappa[j];
+        elseif 1e-2 < t_kappa[j] <= 10.0
+            acceptance_mu[j] = log(exp(t_kappa[j]) - 2.0*alpha*sinh(t_kappa[j]))/t_kappa[j];
+        elseif 0.0 < t_kappa[j] <= 1e-2
+            acceptance_mu[j] = log(1+t_coef*t_kappa[j] + 0.5*t_kappa[j]^2 + t_coef*t_kappa[j]^3/6)/t_kappa[j]
+        else
+            error("strange kappa in find_associated_nus");
+        end
+    end
+    in_ang_window[:] = t_mu .> acceptance_mu;
+    return in_time_window;
 end
-
 
 
 ## Function that reads in the pre-calculated values of the energy PDFs for
@@ -345,7 +372,6 @@ function get_T(E_cr::Float64, frac_sn::Float64)
     else
 	error("bad SN fraction");
     end
-    println(nu_sample_idx);
     nu_sample[nu_sample_idx:end,:] = calc_sample_nus(len_nu-nu_sample_idx+1)
     my_nu[:] = [nu(nu_sample[j,:]...) for j in 1:len_nu];
 
