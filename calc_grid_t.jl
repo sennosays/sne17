@@ -18,7 +18,7 @@ my_sn_frac = linspace(0.1,1.0,N_sn_frac);
 
 
 my_ts = SharedArray(Float64,n_exp,len_sne+1);
-@time for ii in 1:N_E_cr 
+@time for ii in 5:N_E_cr 
 	for jj in 1:N_sn_frac 
 		@sync @parallel for n in 1:n_exp
         		t_opt_T = get_T(my_E_cr[ii],my_sn_frac[jj]);
