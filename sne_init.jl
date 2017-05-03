@@ -168,7 +168,7 @@ end
 function find_associated_nus(t_sn::sn, t_nus::Array{nu,1})
     n_hi = 19;
     n_lo = 4;
-    alpha = 0.99999;
+    alpha = 0.99;
     t_coef = 1.0-2.0*alpha;
 
     t_len_nu = length(t_nus);
