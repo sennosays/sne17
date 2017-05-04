@@ -123,7 +123,7 @@ function calc_sig_sample_nus(t_sn::sn,t_N_nus::Int)
         ang_err = sample(nu_data[:,3],replace=true,t_N_nus);
         mjd = (-0.5-rand(Poisson(13.0))+t_sn.max_date).*ones(Float64,t_N_nus);
 
-        eng = eng_cdf_fn[t_sn.zenith_bin][rand(t_N_nus)];
+        eng = sig_eng_cdf_fn[t_sn.zenith_bin][rand(t_N_nus)];
 
         kappa = 1./ang_err.^2;
 
