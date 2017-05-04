@@ -449,24 +449,14 @@ wrapper_log_sig_energy_pdf, wrapper_log_atm_energy_pdf = get_energy_pdf!(zenith,
 @assert(len_zenith == length(zenith));
 @assert(len_proxy == length(proxy));
 
-sig_eng_cdf_fn = Array(AbstractInterpolation,len_zenith);
-#sig_eng_cdf = readdlm("../data/sig_eng_cdf");
+sig_eng_cdf_fn = Array(AbstractInterpolation,len_zenith-1);
 sig_eng_cdf = readdlm(string(dir_prefix,"sig_eng_cdf"));
 
 log_eng = sig_eng_cdf[:,1];
 
-sig_eng_cdf_fn[:] = [interpolate((sort(sig_eng_cdf[:,i]),),log_eng, Gridded(Linear())) for i in 1:len_zenith] ;
+sig_eng_cdf_fn[:] = [interpolate((sort(sig_eng_cdf[:,i+1]),),log_eng, Gridded(Linear())) for i in 1:len_zenith-1] ;
 
 
-#assign_nb!(my_sn,readdlm(string(dir_prefix,"nb_data"))[1:len_sne,1],convert(Array{Int,1},readdlm(string(dir_prefix,"ks"))[1:len_sne,1]))
-#assign_nb!(my_sn,readdlm("data/nb_data")[1:len_sne,1],convert(Array{Int,1},readdlm("data/ks")[1:len_sne,1]))
-
-
-#sig_cdf = readdlm("data/sig_eng_cdf");
-#unnormed_num_nus = readdlm("data/unnormalized_number_of_neutrinos");
+assign_nb!(my_sn,readdlm(string(dir_prefix,"nb_data"))[1:len_sne,1],convert(Array{Int,1},readdlm(string(dir_prefix,"ks"))[1:len_sne,1]))
 
 unnormed_num_nus = readdlm(string(dir_prefix,"unnormalized_number_of_neutrinos"));
-
-cdf_log_E = sig_eng_cdf[:,1];
-eng_cdf_fn = Array(AbstractInterpolation, len_zenith-1);
-eng_cdf_fn[:] = [interpolate((sort(sig_eng_cdf[:,j]),),cdf_log_E, Gridded(Linear())) for j in 2:len_zenith];
