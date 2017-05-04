@@ -416,7 +416,7 @@ c_dir = splitdir(pwd())[end];
 if c_dir == "code"
 	dir_prefix = "data/";
 elseif c_dir == "sne17"
-	dir_prefix = "w_energy_dep/data/";
+	dir_prefix = "code/data/";
 else
 	error("unknown current directory");
 end
@@ -451,7 +451,7 @@ wrapper_log_sig_energy_pdf, wrapper_log_atm_energy_pdf = get_energy_pdf!(zenith,
 
 sig_eng_cdf_fn = Array(AbstractInterpolation,len_zenith);
 #sig_eng_cdf = readdlm("../data/sig_eng_cdf");
-sig_eng_cdf = readdlm(string(dir_prefix,"sig_eng_cdf"));
+#sig_eng_cdf = readdlm(string(dir_prefix,"sig_eng_cdf"));
 
 log_eng = sig_eng_cdf[:,1];
 
