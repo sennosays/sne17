@@ -374,7 +374,7 @@ function get_T(E_cr::Float64, frac_sn::Float64)
     lower = Array(Float64,len_sne); 
     for i in 1:len_sne	
     	if length(my_sn[i].coefs) > 0
-		lower[i] = [maximum(-1./my_sn[i].coefs) for i in 1:len_sne];
+		lower[i] = maximum(-1./my_sn[i].coefs);
 	else
 		lower[i] = -Inf; 
 	end
