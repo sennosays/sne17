@@ -371,8 +371,14 @@ function get_T(E_cr::Float64, frac_sn::Float64)
     end
 
     map(calc_coefs!,my_sn);
-
-    lower = [maximum(-1./my_sn[i].coefs) for i in 1:len_sne];
+    lower = Array(Float64,len_sne); 
+    for i in 1:len_sne	
+    	if length(my_sn[i].coefs) > 0
+		lower[i] = [maximum(-1./my_sn[i].coefs) for i in 1:len_sne];
+	else
+		lower[i] = -Inf; 
+	end
+    end
     upper = Inf.*ones(Float64,len_sne);
 
 
@@ -384,7 +390,7 @@ function get_T(E_cr::Float64, frac_sn::Float64)
 	println(maximum(-1./my_sn[max_idx].coefs));
     end
 
-    opt_T = optimize(OnceDifferentiable(ns-> calc_T(ns,my_sn), (x,s) -> grad_T!(x,s,my_sn)),zeros(Float64,len_sne),lower,upper,Fminbox(),optimizer = ConjugateGradient);+
+    opt_T = optimize(OnceDifferentiable(ns-> calc_T(ns,my_sn), (x,s) -> grad_T!(x,s,my_sn)),zeros(Float64,len_sne),lower,upper,Fminbox(),optimizer = ConjugateGradient);
 
     return opt_T.minimizer, opt_T.minimum
 end
