@@ -194,7 +194,7 @@ function find_associated_nus(t_sn::sn, t_nus::Array{nu,1})
         end
     end
     in_ang_window[:] = t_mu .> acceptance_mu;
-    return in_time_window;
+    return in_time_window.*in_ang_window;
 end
 
 
@@ -317,10 +317,11 @@ function hess_T!(x::Vector, storage::Matrix, t_sn::Array{sn,1})
     end
 end
 
+
 function calc_coefs!(t_sn::sn)
 
     if length(t_sn.associated_nus) > 0
-	temp_s = map(x-> S_dir(t_sn,x),t_sn.associated_nus);
+			temp_s = map(x-> S_dir(t_sn,x),t_sn.associated_nus);
     	temp_s .*= map(x-> S_time(t_sn,x),t_sn.associated_nus);
     	temp_s .*= map(x-> wrapper_log_sig_energy_pdf[t_sn.zenith_bin](x),[t_sn.associated_nus[j].log_eng for j in 1:length(t_sn.associated_nus)]);
 
@@ -328,7 +329,7 @@ function calc_coefs!(t_sn::sn)
     	temp_b ./= 16.0;
     	temp_b .*= map(x-> wrapper_log_atm_energy_pdf[t_sn.zenith_bin](x),[t_sn.associated_nus[j].log_eng for j in 1:length(t_sn.associated_nus)]);
 
-    	add_coefs!(t_sn,temp_s./temp_b./t_sn.nb);
+    	add_coefs!(t_sn,temp_s);
     end
 end
 
