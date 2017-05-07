@@ -404,15 +404,6 @@ function get_T(E_cr::Float64, frac_sn::Float64)
     return opt_T.minimizer, opt_T.minimum
 end
 
-function bootstrap_T(NN::Int)
-        my_ts = Array(Float64,NN,len_sne+1);
-        for N in 1:NN
-                t_opt_T = get_T();
-                my_ts[N,1:end-1] = t_opt_T[1];
-		            my_ts[N,end] = t_opt_T[2];
-        end
-        return my_ts;
-end
 c_dir = splitdir(pwd())[end];
 if c_dir == "code"
 	dir_prefix = "data/";
