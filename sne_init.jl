@@ -206,12 +206,6 @@ function get_energy_pdf!(t_zenith::Array{Float64,1}, t_proxy::Array{Float64,1})
 
     AA = readcsv(string(dir_prefix,"sig_num_nus_pdf"));
     BB = readcsv(string(dir_prefix,"atm_num_nus_pdf"));
-
-    #AA = readcsv("data/sig_num_nus_pdf");
-    #BB = readcsv("data/atm_num_nus_pdf");
-
-
-
     t_zenith[:] = AA[:,1];
     t_proxy[:] = AA[1,2:end];
 
@@ -310,14 +304,6 @@ function grad_T!(x::Vector, storage::Vector, t_sn::Array{sn,1})
     storage[:] = -[sum(t_sn[i].coefs./(t_sn[i].coefs.*x[i]+1.0)) - 1.0 for i in 1:length(x)];
 end
 
-function hess_T!(x::Vector, storage::Matrix, t_sn::Array{sn,1})
-    fill!(storage,0.0);
-    for i in 1:length(x)
-        storage[i,i] = sum((t_sn[i].coefs./(t_sn[i].coefs.*x[i]+1.0)).^2)
-    end
-end
-
-
 function calc_coefs!(t_sn::sn)
 
     if length(t_sn.associated_nus) > 0
@@ -398,8 +384,7 @@ function get_T(E_cr::Float64, frac_sn::Float64)
 	println(maximum(-1./my_sn[max_idx].coefs));
     end
 
-    opt_T = optimize(OnceDifferentiable(ns-> calc_T(ns,my_sn), (x,s) -> grad_T!(x,s,my_sn)),zeros(Float64,len_sne),lower,upper,Fminbox(),optimizer = ConjugateGradient);
-    #opt_T = optimize(ns-> calc_T(ns,my_sn),(x,s) -> grad_T!(x,s,my_sn),(xx,ss) -> hess_T!(xx,ss,my_sn),zeros(Float64,len_sne),Newton())
+    opt_T = optimize(OnceDifferentiable(ns-> calc_T(ns,my_sn), (x,s) -> grad_T!(x,s,my_sn)),zeros(Float64,len_sne),lower,upper,Fminbox(),optimizer = ConjugateGradient);+
 
     return opt_T.minimizer, opt_T.minimum
 end
@@ -418,9 +403,6 @@ sne_data = readdlm(string(dir_prefix,"sne_data"));
 
 len_sne = 27;
 len_nu = 69227;
-
-
-
 
 my_sn = Array(sn,len_sne);
 my_nu = Array(nu,len_nu);
@@ -447,7 +429,6 @@ sig_eng_cdf = readdlm(string(dir_prefix,"sig_eng_cdf"));
 log_eng = sig_eng_cdf[:,1];
 
 sig_eng_cdf_fn[:] = [interpolate((sort(sig_eng_cdf[:,i+1]),),log_eng, Gridded(Linear())) for i in 1:len_zenith-1] ;
-
 
 assign_nb!(my_sn,readdlm(string(dir_prefix,"nb_data"))[1:len_sne,1],convert(Array{Int,1},readdlm(string(dir_prefix,"ks"))[1:len_sne,1]))
 
