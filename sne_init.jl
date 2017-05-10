@@ -370,26 +370,51 @@ function get_T(E_cr::Float64, frac_sn::Float64)
     end
 
     map(calc_coefs!,my_sn);
-    lower = Array(Float64,len_sne); 
-    for i in 1:len_sne	
+    lower = Array(Float64,len_sne);
+    for i in 1:len_sne
     	if length(my_sn[i].coefs) > 0
-		t_lower = maximum(-1./my_sn[i].coefs); 
-		@assert t_lower != 0.0; 
+		t_lower = maximum(-1./my_sn[i].coefs);
+		@assert t_lower != 0.0;
 		t_lower = max(t_lower,-my_sn[i].nb);
-		@assert t_lower != 0.0;  
-		lower[i] = t_lower; 
+		@assert t_lower != 0.0;
+		lower[i] = t_lower;
 	else
 		t_lower = -my_sn[i].nb;
-		@assert t_lower != 0.0; 
-		lower[i] = t_lower; 
+		@assert t_lower != 0.0;
+		lower[i] = t_lower;
 	end
     end
     upper = Inf.*ones(Float64,len_sne);
 
 
     opt_T = optimize(OnceDifferentiable(ns-> calc_T(ns,my_sn), (x,s) -> grad_T!(x,s,my_sn)),zeros(Float64,len_sne),lower,upper,Fminbox(),optimizer = ConjugateGradient);
-	
+
     return opt_T.minimizer, opt_T.minimum
+end
+
+function get_T_obs()
+	my_nu[:] = [nu(nu_data[j,:]...) for j in 1:len_nu];
+
+	map(rm_coefs!,my_sn)
+	map(rm_associated_nus!,my_sn)
+
+	for i in 1:len_sne
+	  associated_nus = find_associated_nus(my_sn[i],my_nu);
+	  if length(associated_nus) > 0
+	    add_nu!(my_sn[i],my_nu[associated_nus])
+	  end
+	end
+
+	#map(x-> add_nu!(x,my_nu[find_associated_nus(x,my_nu)]),my_sn);
+
+	map(calc_coefs!,my_sn);
+
+	lower = [maximum(-1./my_sn[i].coefs) for i in 1:len_sne];
+	upper = Inf.*ones(Float64,len_sne);
+
+	opt_T = optimize(OnceDifferentiable(ns-> calc_T(ns,my_sn), (x,s) -> grad_T!(x,s,my_sn)),zeros(Float64,len_sne),lower,upper,Fminbox(),optimizer = ConjugateGradient);
+
+	return opt_T;
 end
 
 c_dir = splitdir(pwd())[end];
