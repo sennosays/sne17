@@ -7,18 +7,18 @@ using StatsBase
 
 @everywhere include("sne_init.jl");
 @everywhere get_T(1e52,1.0);
-n_exp = 1000;
+n_exp = 10000;
 N_E_cr = 10; 
 N_sn_frac = 10; 
 
 my_E_cr_ex = linspace(46,52,N_E_cr); 
 my_E_cr = 10.^my_E_cr_ex; 
 
-my_sn_frac = linspace(0.1,1.0,N_sn_frac); 
+my_sn_frac = linspace(0.6,1.0,N_sn_frac); 
 
 
 my_ts = SharedArray(Float64,n_exp,len_sne+1);
-@time for ii in 1:N_E_cr 
+@time for ii in N_E_cr:N_E_cr 
 	for jj in 1:N_sn_frac 
 		@sync @parallel for n in 1:n_exp
         		t_opt_T = get_T(my_E_cr[ii],my_sn_frac[jj]);

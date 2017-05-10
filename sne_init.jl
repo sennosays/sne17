@@ -307,15 +307,14 @@ end
 function calc_coefs!(t_sn::sn)
 
     if length(t_sn.associated_nus) > 0
-			temp_s = map(x-> S_dir(t_sn,x),t_sn.associated_nus);
+	temp_s = map(x-> S_dir(t_sn,x),t_sn.associated_nus);
     	temp_s .*= map(x-> S_time(t_sn,x),t_sn.associated_nus);
     	temp_s .*= map(x-> wrapper_log_sig_energy_pdf[t_sn.zenith_bin](x),[t_sn.associated_nus[j].log_eng for j in 1:length(t_sn.associated_nus)]);
 
     	temp_b = (1/(2*pi))*B_nu_dec([t_sn.associated_nus[j].dec for j in 1:length(t_sn.associated_nus)]);
     	temp_b ./= 16.0;
     	temp_b .*= map(x-> wrapper_log_atm_energy_pdf[t_sn.zenith_bin](x),[t_sn.associated_nus[j].log_eng for j in 1:length(t_sn.associated_nus)]);
-
-    	add_coefs!(t_sn,temp_s);
+    	add_coefs!(t_sn,temp_s./temp_b./t_sn.nb);
     end
 end
 
@@ -340,7 +339,7 @@ function get_T(E_cr::Float64, frac_sn::Float64)
     @assert(1e40 < E_cr < 1e55);
     C = 18;
 
-    nu_flux_coef = (3/8)*E_cr./(4*pi*C);
+    nu_flux_coef = (1/8)*E_cr./(4*pi*C);
 
     #pick a Poisson random number corresponding to the fraction of
     # SN with jets
@@ -374,24 +373,22 @@ function get_T(E_cr::Float64, frac_sn::Float64)
     lower = Array(Float64,len_sne); 
     for i in 1:len_sne	
     	if length(my_sn[i].coefs) > 0
-		lower[i] = maximum(-1./my_sn[i].coefs);
+		t_lower = maximum(-1./my_sn[i].coefs); 
+		@assert t_lower != 0.0; 
+		t_lower = max(t_lower,-my_sn[i].nb);
+		@assert t_lower != 0.0;  
+		lower[i] = t_lower; 
 	else
-		lower[i] = -Inf; 
+		t_lower = -my_sn[i].nb;
+		@assert t_lower != 0.0; 
+		lower[i] = t_lower; 
 	end
     end
     upper = Inf.*ones(Float64,len_sne);
 
 
-    if maximum(lower) > 0.0
-    	println("we have a positive lower bound");
-    	max_idx = indmax(lower)
-	println("this SN has ",length(my_sn[max_idx].associated_nus)," neutrinos");
-	println(my_sn[max_idx].coefs);
-	println(maximum(-1./my_sn[max_idx].coefs));
-    end
-
     opt_T = optimize(OnceDifferentiable(ns-> calc_T(ns,my_sn), (x,s) -> grad_T!(x,s,my_sn)),zeros(Float64,len_sne),lower,upper,Fminbox(),optimizer = ConjugateGradient);
-
+	
     return opt_T.minimizer, opt_T.minimum
 end
 
