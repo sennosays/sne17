@@ -454,6 +454,6 @@ log_eng = sig_eng_cdf[:,1];
 
 sig_eng_cdf_fn[:] = [interpolate((sort(sig_eng_cdf[:,i+1]),),log_eng, Gridded(Linear())) for i in 1:len_zenith-1] ;
 
-assign_nb!(my_sn,readcsv	(string(dir_prefix,"nb_data"))[1:len_sne,1],convert(Array{Int,1},readcsv(string(dir_prefix,"modified_sne_zenith_bin_idx_small_sample.csv"))[1:len_sne,1]))
+assign_nb!(my_sn,readcsv(string(dir_prefix,"nb_data"))[1:len_sne,1],convert(Array{Int,1},readcsv(string(dir_prefix,"modified_sne_zenith_bin_idx_small_sample.csv"))[1:len_sne,1]))
 
 unnormed_num_nus = readdlm(string(dir_prefix,"unnormalized_number_of_neutrinos"));
