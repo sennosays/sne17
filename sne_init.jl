@@ -334,9 +334,15 @@ function assign_nb!(t_sn::Array{sn,1}, nnb::Array{Float64,1}, ks::Array{Int,1})
     nothing;
 end
 
+function T_deriv(t_n::Float64, t_cs::Array{Float64,1})
+    return sum(t_cs./(t_n.*t_cs+1.0))-1.0
+end
+
 function get_T(E_cr::Float64, frac_sn::Float64)
     @assert(0.0 <= frac_sn <= 1.0);
     @assert(1e40 < E_cr < 1e55);
+		ns = Array(Float64,len_sne);
+		
     C = 18;
 
     nu_flux_coef = (1/8)*E_cr./(4*pi*C);
@@ -370,7 +376,7 @@ function get_T(E_cr::Float64, frac_sn::Float64)
     end
 
     map(calc_coefs!,my_sn);
-    lower = Array(Float64,len_sne);
+    #= lower = Array(Float64,len_sne);
     for i in 1:len_sne
     	if length(my_sn[i].coefs) > 0
 				t_lower = max(maximum(-1./my_sn[i].coefs),-my_sn[i].nb);
@@ -384,11 +390,17 @@ function get_T(E_cr::Float64, frac_sn::Float64)
     upper = Inf.*ones(Float64,len_sne);
 
     opt_T = optimize(OnceDifferentiable(ns-> calc_T(ns,my_sn), (x,s) -> grad_T!(x,s,my_sn)),ones(Float64,len_sne),lower,upper,Fminbox(),optimizer = ConjugateGradient);
-
+		=#
+		#opt_T = optimize(OnceDifferentiable(ns-> calc_T(ns,my_sn), (x,s) -> grad_T!(x,s,my_sn)),zeros(Float64,len_sne),lower,upper,Fminbox(),optimizer = ConjugateGradient);
+		ns[:] = [optimize(x-> abs(T_deriv(x,my_sn[i].coefs)),maximum(-1./my_sn[i].coefs),100.0).minimizer for i in 1:len_sne];
+		result_T = calc_T(ns,my_sn);
+		return ns, result_T;
     return opt_T.minimizer, opt_T.minimum
 end
 
 function get_T_obs()
+
+	ns = Array(Float64,len_sne);
 	my_nu[:] = [nu(nu_data[j,:]...) for j in 1:len_nu];
 
 	map(rm_coefs!,my_sn)
@@ -401,16 +413,15 @@ function get_T_obs()
 	  end
 	end
 
-	#map(x-> add_nu!(x,my_nu[find_associated_nus(x,my_nu)]),my_sn);
-
 	map(calc_coefs!,my_sn);
 
-	lower = [maximum(-1./my_sn[i].coefs) for i in 1:len_sne];
-	upper = Inf.*ones(Float64,len_sne);
+	#lower = [maximum(-1./my_sn[i].coefs) for i in 1:len_sne];
+	#upper = Inf.*ones(Float64,len_sne);
 
-	opt_T = optimize(OnceDifferentiable(ns-> calc_T(ns,my_sn), (x,s) -> grad_T!(x,s,my_sn)),zeros(Float64,len_sne),lower,upper,Fminbox(),optimizer = ConjugateGradient);
-
-	return opt_T;
+	#opt_T = optimize(OnceDifferentiable(ns-> calc_T(ns,my_sn), (x,s) -> grad_T!(x,s,my_sn)),zeros(Float64,len_sne),lower,upper,Fminbox(),optimizer = ConjugateGradient);
+	ns[:] = [optimize(x-> abs(T_deriv(x,my_sn[i].coefs)),maximum(-1./my_sn[i].coefs),100.0).minimizer for i in 1:len_sne];
+	result_T = calc_T(ns,my_sn);
+	return ns, result_T;
 end
 
 c_dir = splitdir(pwd())[end];
