@@ -14,7 +14,7 @@ N_sn_frac = 10;
 my_E_cr_ex = linspace(46,52,N_E_cr); 
 my_E_cr = 10.^my_E_cr_ex; 
 
-my_sn_frac = linspace(0.1,1.0,N_sn_frac); 
+my_sn_frac = linspace(0.5,1.0,N_sn_frac); 
 
 
 my_ts = SharedArray(Float64,n_exp,len_sne+1);
