@@ -427,15 +427,15 @@ else
 end
 
 nu_data = readdlm(string(dir_prefix,"modified_upgoing_nu"));
-sne_data = readdlm(string(dir_prefix,"sne_data"));
+sne_data = readcsv(string(dir_prefix,"modified_sne_data_small_sample.csv"));
 
-len_sne = 27;
+len_sne = 29;
 len_nu = 69227;
 
 my_sn = Array(sn,len_sne);
 my_nu = Array(nu,len_nu);
 
-my_sn[:] = [sn(sne_data[i,:]...) for i in 1:len_sne];
+my_sn[:] = [sn(sne_data[i,1:4]...) for i in 1:len_sne];
 
 len_zenith = 12;
 len_proxy = 51;
@@ -458,6 +458,6 @@ log_eng = sig_eng_cdf[:,1];
 
 sig_eng_cdf_fn[:] = [interpolate((sort(sig_eng_cdf[:,i+1]),),log_eng, Gridded(Linear())) for i in 1:len_zenith-1] ;
 
-assign_nb!(my_sn,readdlm(string(dir_prefix,"nb_data"))[1:len_sne,1],convert(Array{Int,1},readdlm(string(dir_prefix,"ks"))[1:len_sne,1]))
+assign_nb!(my_sn,readdlm(string(dir_prefix,"nb_data"))[1:len_sne,1],convert(Array{Int,1},readcsv(string(dir_prefix,"modified_sne_zenith_bin_idx_small_sample.csv"))[1:len_sne,1]))
 
 unnormed_num_nus = readdlm(string(dir_prefix,"unnormalized_number_of_neutrinos"));
