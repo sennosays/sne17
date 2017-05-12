@@ -341,7 +341,7 @@ end
 function get_T(E_cr::Float64, frac_sn::Float64)
     @assert(0.0 <= frac_sn <= 1.0);
     @assert(1e40 < E_cr < 1e55);
-		ns = Array(Float64,len_sne);
+		ns = zeros(Float64,len_sne);
 
     C = 18;
 
@@ -392,9 +392,10 @@ function get_T(E_cr::Float64, frac_sn::Float64)
     opt_T = optimize(OnceDifferentiable(ns-> calc_T(ns,my_sn), (x,s) -> grad_T!(x,s,my_sn)),ones(Float64,len_sne),lower,upper,Fminbox(),optimizer = ConjugateGradient);
 		=#
 		#opt_T = optimize(OnceDifferentiable(ns-> calc_T(ns,my_sn), (x,s) -> grad_T!(x,s,my_sn)),zeros(Float64,len_sne),lower,upper,Fminbox(),optimizer = ConjugateGradient);
-		ns[:] = [optimize(x-> abs(T_deriv(x,my_sn[i].coefs)),maximum(-1./my_sn[i].coefs),100.0).minimizer for i in 1:len_sne];
+		non_zero_array = [length(my_sn[i].coefs) != 0.0 for i in 1:len_sne];
+		ns[non_zero_array] = [optimize(x-> abs(T_deriv(x,my_sn[i].coefs)),maximum(-1./my_sn[i].coefs),100.0).minimizer for i in non_zero_array];
 		result_T = calc_T(ns,my_sn);
-		@assert result_T < 0.0; 
+		@assert result_T < 0.0;
 		return ns, result_T;
 end
 
