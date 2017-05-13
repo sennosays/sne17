@@ -21,7 +21,9 @@ my_ts = SharedArray(Float64,n_exp,len_sne+1);
 @time for ii in 1:N_E_cr 
 	for jj in 1:N_sn_frac 
 		@sync @parallel for n in 1:n_exp
-        		my_ts[n,1:end-1], my_ts[n,end] = get_T(my_E_cr[ii],my_sn_frac[jj]);
+		        t_opt_T = get_T(my_E_cr[ii],my_sn_frac[jj]);
+                        my_ts[n,1:end-1] = t_opt_T.minimizer;
+                        my_ts[n,end] = t_opt_T.minimum;
 		end
 		@sync writedlm(string("results/T_",n_exp,"_",round(log10(my_E_cr[ii]),1),"_",round(my_sn_frac[jj],1),".dat"),my_ts);
 	end
