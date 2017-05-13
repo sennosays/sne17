@@ -341,7 +341,7 @@ end
 function get_T(E_cr::Float64, frac_sn::Float64)
     @assert(0.0 <= frac_sn <= 1.0);
     @assert(1e40 < E_cr < 1e55);
-		ns = Array(Float64,len_sne);
+		ns = zeros(Float64,len_sne);
     C = 18;
 
     nu_flux_coef = (1/8)*E_cr./(4*pi*C);
