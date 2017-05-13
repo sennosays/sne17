@@ -348,7 +348,8 @@ function get_T(E_cr::Float64, frac_sn::Float64)
 
     #pick a Poisson random number corresponding to the fraction of
     # SN with jets
-    N_sn = rand(Poisson(frac_sn*len_sne));
+    #N_sn = rand(Poisson(frac_sn*len_sne));
+		N_sn = round(frac_sn*len_sne);
 
     nu_sample = Array(Float64,len_nu,5);
 
@@ -389,7 +390,7 @@ function get_T(E_cr::Float64, frac_sn::Float64)
     upper = Inf.*ones(Float64,len_sne);
 
     opt_T = optimize(OnceDifferentiable(ns-> calc_T(ns,my_sn), (x,s) -> grad_T!(x,s,my_sn)),ones(Float64,len_sne),lower,upper,Fminbox(),optimizer = ConjugateGradient);
-    return opt_T; 
+    return opt_T.minimizer, opt_T.minimum;
 end
 
 function get_T_obs()
