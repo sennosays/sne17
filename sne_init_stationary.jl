@@ -348,7 +348,7 @@ function get_T(E_cr::Float64, frac_sn::Float64)
 
     #pick a Poisson random number corresponding to the fraction of
     # SN with jets
-    N_sn = round(frac_sn*len_sne);
+    N_sn = Int(round(frac_sn*len_sne));
 
     nu_sample = Array(Float64,len_nu,5);
 

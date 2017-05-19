@@ -7,10 +7,10 @@ using StatsBase
 
 @everywhere include("sne_init.jl");
 @everywhere get_T(1e52,1.0);
-n_exp = 1000;
+n_exp = 10000;
 
 my_E_cr = 1e52; 
-my_sn_frac = 0.9; 
+my_sn_frac = 1.0; 
 
 
 my_ts = SharedArray(Float64,n_exp,len_sne+1);
@@ -21,4 +21,4 @@ my_ts = SharedArray(Float64,n_exp,len_sne+1);
         my_ts[n,end] = t_opt_T.minimum;
 end
 #toc();
-writedlm(string("results/T_",n_exp,"_",my_E_cr,"_",my_sn_frac,".dat"),my_ts);
+writedlm(string("results/T_",n_exp,"_",my_E_cr,"_",my_sn_frac,"_stationary.dat"),my_ts);

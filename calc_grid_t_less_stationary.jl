@@ -7,14 +7,14 @@ using StatsBase
 
 @everywhere include("sne_init_stationary.jl");
 @everywhere get_T(1e52,1.0);
-n_exp = 5;
+n_exp = 1000;
 N_E_cr = 10;
 N_sn_frac = 10;
 
 my_E_cr_ex = linspace(46,52,N_E_cr);
 my_E_cr = 10.^my_E_cr_ex;
 
-my_sn_frac = linspace(0.5,1.0,N_sn_frac);
+my_sn_frac = linspace(0.0,1.0,N_sn_frac);
 
 
 my_ts = SharedArray(Float64,n_exp,len_sne+1);
@@ -23,6 +23,6 @@ my_ts = SharedArray(Float64,n_exp,len_sne+1);
 		@sync @parallel for n in 1:n_exp
 		        my_ts[n,1:end-1], my_ts[n,end] = get_T(my_E_cr[ii],my_sn_frac[jj]);
 		end
-		@sync writedlm(string("results/T_",n_exp,"_",round(log10(my_E_cr[ii]),1),"_",round(my_sn_frac[jj],1),"_test_stationary.dat"),my_ts);
+		@sync writedlm(string("results/T_",n_exp,"_",round(log10(my_E_cr[ii]),1),"_",round(my_sn_frac[jj],2),"_stationary.dat"),my_ts);
 	end
 end
