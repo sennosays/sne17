@@ -294,8 +294,8 @@ function S_time(t_sn::sn, t_nu::nu)
 end
 
 function calc_T(nns::Array{Float64,1},t_sn::Array{sn,1})
-
-    inner_sum = [sum(log(nns[i].*t_sn[i].coefs+ 1.0)) for i in 1:len_sne]
+		@assert length(nns) == length(t_sn)
+    inner_sum = [sum(log(nns[i].*t_sn[i].coefs+ 1.0)) for i in 1:length(t_sn)]
 
     return sum( nns .- inner_sum);
 end
@@ -341,7 +341,7 @@ end
 function get_T(E_cr::Float64, frac_sn::Float64)
     @assert(0.0 <= frac_sn <= 1.0);
     @assert(1e40 < E_cr < 1e55);
-		ns = Array(Float64,len_sne);
+		ns = zeros(Float64,len_sne);
     C = 18;
 
     nu_flux_coef = (1/8)*E_cr./(4*pi*C);
@@ -378,7 +378,7 @@ function get_T(E_cr::Float64, frac_sn::Float64)
 
 		non_empty_arrays = [length(my_sn[i].coefs) != 0.0 for i in 1:len_sne]
 		ns[non_empty_arrays] = [optimize(x-> abs(T_deriv(x,my_sn[i].coefs)),max(maximum(-1./my_sn[i].coefs),-my_sn[i].nb),100.0).minimizer for i in range(1,len_sne)[non_empty_arrays]];
-		result_T = calc_T(ns,my_sn);
+		result_T = calc_T(ns[non_empty_arrays],my_sn[non_empty_arrays]);
 
     return ns, result_T;
 end
